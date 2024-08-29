@@ -5,8 +5,10 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from init import db
 from models.card import Card, card_schema, cards_schema
+from controllers.comment_controller import comments_bp
 
 cards_bp = Blueprint("cards", __name__, url_prefix="/cards")
+cards_bp.register_blueprint(comments_bp)
 
 # /cards - GET - fetch all cards
 # /cards/<id> - GET - fetch a specific card
@@ -30,7 +32,7 @@ def get_a_card(card_id):
     if card:
         return card_schema.dump(card)
     else:
-        return {"error": f"Card with id {card_id} not found"}, 404
+        return {"error": f"Card with id '{card_id}' not found"}, 404
     
 # /cards - POST - create a new card
 @cards_bp.route("/", methods=["POST"])
@@ -51,7 +53,7 @@ def create_card():
     db.session.add(card)
     db.session.commit()
     # response message
-    return {"msg":"ok"}
+    return card_schema.dump(card)
 
 # /cards/<id> - DELETE - delete a card
 @cards_bp.route("/<int:card_id>", methods=["DELETE"])
@@ -70,7 +72,7 @@ def delete_card(card_id):
     else:
         # return error message
         return {"error": f"Card with id {card_id} not found"}, 404
-    
+
 # /cards/<id> - PUT, PATCH - edit a card entry
 @cards_bp.route("/<int:card_id>", methods=["PUT", "PATCH"])
 @jwt_required()
